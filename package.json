@@ -1,0 +1,17 @@
+{
+  "name": "jira-scripts",
+  "version": "1.0.0",
+  "description": "jira utility scripts",
+  "license": "MIT",
+  "author": {
+    "name": "Piotr Kowalski",
+    "email": "pkowalski@gmail.com"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "debug": "^4.4.0",
+    "dotenv": "^16.4.7"
+  }
+}

@@ -1,0 +1,65 @@
+#!/usr/bin/env node
+
+const title = process.argv[2];
+const description = process.argv[3] ?? "";
+
+if (!title) {
+  console.error("Usage: new-jira-issue <title> [description]");
+  process.exit(1);
+}
+
+const { makeJsonPostRequest } = require("../__shared");
+
+const path = require("path");
+const assert = require("assert");
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+
+const JIRA_URL = process.env.JIRA_URL;
+const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
+const JIRA_PROJECT_KEY = process.env.JIRA_PROJECT_KEY;
+
+assert(JIRA_URL, "Missing JIRA_URL in .env file");
+assert(JIRA_API_TOKEN, "Missing JIRA_API_TOKEN in .env file");
+assert(JIRA_PROJECT_KEY, "Missing JIRA_PROJECT_KEY in .env file");
+
+/**
+ * @typedef {Object} DTOCreateIssue
+ * @property {string} id
+ * @property {string} key
+ * @property {string} self
+ */
+
+/**
+ * @param param0
+ * @returns {Promise<DTOCreateIssue>}
+ */
+function createIssue({ title, description }) {
+  const payload = {
+    fields: {
+      project: { key: JIRA_PROJECT_KEY },
+      summary: title,
+      description: description,
+      issuetype: { name: "Story" },
+    },
+  };
+  try {
+    const url = `${JIRA_URL}/rest/api/2/issue`;
+    return makeJsonPostRequest(url, JIRA_API_TOKEN, payload);
+  } catch (error) {
+    return Promise.reject(error.response?.data || error.message);
+  }
+}
+
+async function main() {
+  const response = await createIssue({
+    title,
+    description,
+  });
+  const browseURL = `${JIRA_URL}/browse/${response.key}`;
+  console.log({ browseURL });
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
