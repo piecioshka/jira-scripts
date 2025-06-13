@@ -8,7 +8,7 @@ if (!title) {
   process.exit(1);
 }
 
-const { makeJsonPostRequest } = require("../__shared");
+const { makeJsonPostRequest } = require("../shared/__shared");
 
 const path = require("path");
 const assert = require("assert");
