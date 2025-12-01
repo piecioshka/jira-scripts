@@ -20,7 +20,31 @@ set -gx PATH $HOME/projects/jira-scripts/bin/ $PATH
 ## Commands
 
 - `get-jira-tokens` - Get all Personal Access Tokens (**use HTTP GET**) — _TIP: could verify if authorization is correct_
-- `new-jira-issue` - Create a new ticket (**use HTTP POST**)
+- `new-jira-issue <title> [options]` - Create a new ticket (**use HTTP POST**)
+
+### new-jira-issue options
+
+- `-d, --description <text>` - Issue description
+- `-a, --assignee <username>` - Assignee username
+- `-l, --labels <label1,label2>` - Comma-separated labels
+- `-c, --custom-field <key=val>` - Custom field as key=value (can be used multiple times)
+- `-t, --issue-type <type>` - Issue type (default: Story)
+
+**Examples:**
+
+```bash
+# Basic usage
+new-jira-issue "Fix login bug"
+
+# With description and assignee
+new-jira-issue "Implement feature" -d "Add user authentication" -a "john.doe"
+
+# With labels and custom issue type
+new-jira-issue "Update documentation" -l "docs,urgent" -t "Task"
+
+# With multiple custom fields
+new-jira-issue "Story title" -c "customfield_10000=value1" -c "customfield_10001=value2"
+```
 
 ## Setup
 
@@ -38,5 +62,5 @@ To enable debugging, please use the `DEBUG` environment variable.
 
 ```bash
 DEBUG="jira-scripts:*" get-jira-tokens
-DEBUG="jira-scripts:*" new-jira-issue
+DEBUG="jira-scripts:*" new-jira-issue "My Issue"
 ```
