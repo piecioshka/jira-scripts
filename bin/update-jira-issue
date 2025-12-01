@@ -3,11 +3,9 @@
 const minimist = require("minimist");
 
 const argv = minimist(process.argv.slice(2), {
-  string: ["description", "assignee", "labels", "issue-type"],
-  default: {
-    "issue-type": "Story",
-  },
+  string: ["title", "description", "assignee", "labels", "issue-type"],
   alias: {
+    s: "title",
     d: "description",
     a: "assignee",
     l: "labels",
@@ -16,30 +14,29 @@ const argv = minimist(process.argv.slice(2), {
   },
 });
 
-const title = argv._[0];
-const description = argv.description || "";
+const issueId = argv._[0];
+const title = argv.title;
+const description = argv.description;
 const assignee = argv.assignee;
 const labels = argv.labels ? argv.labels.split(",") : undefined;
 const customFieldInputs = argv["custom-field"];
 const issueType = argv["issue-type"];
 
-if (!title) {
-  console.error("Usage: new-jira-issue <title> [options]");
+if (!issueId) {
+  console.error("Usage: update-jira-issue <issue_id> [options]");
   console.error("Options:");
+  console.error("  -s, --title <text>           Issue title/summary");
   console.error("  -d, --description <text>     Issue description");
   console.error("  -a, --assignee <username>    Assignee username");
   console.error("  -l, --labels <label1,label2> Comma-separated labels");
   console.error(
     "  -c, --custom-field <key=val> Custom field as key=value (can be used multiple times)",
   );
-  console.error("  -t, --issue-type <type>      Issue type (default: Story)");
+  console.error("  -t, --issue-type <type>      Issue type");
   process.exit(1);
 }
 
-const {
-  makeJsonPostRequest,
-  parseCustomFields,
-} = require("../shared/__shared");
+const { makePutRequest, parseCustomFields } = require("../shared/__shared");
 
 const path = require("path");
 const assert = require("assert");
@@ -47,39 +44,30 @@ require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const JIRA_URL = process.env.JIRA_URL;
 const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
-const JIRA_PROJECT_KEY = process.env.JIRA_PROJECT_KEY;
 
 assert(JIRA_URL, "Missing JIRA_URL in .env file");
 assert(JIRA_API_TOKEN, "Missing JIRA_API_TOKEN in .env file");
-assert(JIRA_PROJECT_KEY, "Missing JIRA_PROJECT_KEY in .env file");
 
 /**
- * @typedef {Object} DTOCreateIssue
- * @property {string} id
- * @property {string} key
- * @property {string} self
+ * @param {string} issueId
+ * @param {Object} updates
+ * @returns {Promise<void>}
  */
-
-/**
- * @param param0
- * @returns {Promise<DTOCreateIssue>}
- */
-function createIssue({
-  title,
-  description,
-  assignee,
-  labels,
-  customFields,
-  issueType,
-}) {
+async function updateIssue(
+  issueId,
+  { title, description, assignee, labels, customFields, issueType },
+) {
   const payload = {
-    fields: {
-      project: { key: JIRA_PROJECT_KEY },
-      summary: title,
-      description: description,
-      issuetype: { name: issueType },
-    },
+    fields: {},
   };
+
+  if (title) {
+    payload.fields.summary = title;
+  }
+
+  if (description !== undefined) {
+    payload.fields.description = description;
+  }
 
   if (assignee) {
     payload.fields.assignee = { name: assignee };
@@ -89,13 +77,17 @@ function createIssue({
     payload.fields.labels = labels;
   }
 
+  if (issueType) {
+    payload.fields.issuetype = { name: issueType };
+  }
+
   if (customFields && Object.keys(customFields).length > 0) {
     Object.assign(payload.fields, customFields);
   }
 
   try {
-    const url = `${JIRA_URL}/rest/api/2/issue`;
-    return makeJsonPostRequest(url, JIRA_API_TOKEN, payload);
+    const url = `${JIRA_URL}/rest/api/2/issue/${issueId}`;
+    await makePutRequest(url, JIRA_API_TOKEN, payload);
   } catch (error) {
     return Promise.reject(error.response?.data || error.message);
   }
@@ -104,7 +96,7 @@ function createIssue({
 async function main() {
   const customFields = parseCustomFields(customFieldInputs);
 
-  const response = await createIssue({
+  await updateIssue(issueId, {
     title,
     description,
     assignee,
@@ -112,12 +104,8 @@ async function main() {
     customFields,
     issueType,
   });
-  if (!response || !response.key) {
-    console.error(response);
-    throw new Error("Failed to create JIRA issue");
-  }
-  const browseUrl = `${JIRA_URL}/browse/${response.key}`;
-  console.log(`Issue ${response.key} created successfully: ${browseUrl}`);
+  const browseUrl = `${JIRA_URL}/browse/${issueId}`;
+  console.log(`Issue ${issueId} updated successfully: ${browseUrl}`);
 }
 
 main().catch((error) => {

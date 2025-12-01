@@ -22,6 +22,7 @@ set -gx PATH $HOME/projects/jira-scripts/bin/ $PATH
 - `get-jira-issue <issue_id>` - Get issue details by ID (**use HTTP GET**)
 - `get-jira-tokens` - Get all Personal Access Tokens (**use HTTP GET**) — _TIP: could verify if authorization is correct_
 - `new-jira-issue <title> [options]` - Create a new ticket (**use HTTP POST**)
+- `update-jira-issue <issue_id> [options]` - Update an existing ticket (**use HTTP PUT**)
 
 ### new-jira-issue options
 
@@ -47,6 +48,31 @@ new-jira-issue "Update documentation" -l "docs,urgent" -t "Task"
 new-jira-issue "Story title" -c "customfield_10000=value1" -c "customfield_10001=value2"
 ```
 
+### update-jira-issue options
+
+- `-s, --title <text>` - Issue title/summary
+- `-d, --description <text>` - Issue description
+- `-a, --assignee <username>` - Assignee username
+- `-l, --labels <label1,label2>` - Comma-separated labels
+- `-c, --custom-field <key=val>` - Custom field as key=value (can be used multiple times)
+- `-t, --issue-type <type>` - Issue type
+
+**Examples:**
+
+```bash
+# Update title
+update-jira-issue PROJ-123 -s "New title"
+
+# Update description and assignee
+update-jira-issue PROJ-123 -d "Updated description" -a "jane.doe"
+
+# Update labels and issue type
+update-jira-issue PROJ-123 -l "bug,critical" -t "Bug"
+
+# Update with custom fields
+update-jira-issue PROJ-123 -c "customfield_10000=newvalue" -c "customfield_10001=another"
+```
+
 ## Setup
 
 1. Clone the repo
@@ -62,7 +88,8 @@ new-jira-issue "Story title" -c "customfield_10000=value1" -c "customfield_10001
 To enable debugging, please use the `DEBUG` environment variable.
 
 ```bash
-DEBUG="jira-scripts:*" get-jira-issue PROJ-123
+DEBUG="jira-scripts:*" get-jira-issue <issue_id>
 DEBUG="jira-scripts:*" get-jira-tokens
-DEBUG="jira-scripts:*" new-jira-issue "My Issue"
+DEBUG="jira-scripts:*" new-jira-issue <title> [options]
+DEBUG="jira-scripts:*" update-jira-issue <issue_id> [options]
 ```
