@@ -1,10 +1,52 @@
 #!/usr/bin/env node
 
-const title = process.argv[2];
-const description = process.argv[3] ?? "";
+const minimist = require("minimist");
+
+const argv = minimist(process.argv.slice(2), {
+  string: ["description", "assignee", "labels", "issue-type"],
+  default: {
+    "issue-type": "Story",
+  },
+  alias: {
+    d: "description",
+    a: "assignee",
+    l: "labels",
+    c: "custom-field",
+    t: "issue-type",
+  },
+});
+
+const title = argv._[0];
+const description = argv.description || "";
+const assignee = argv.assignee;
+const labels = argv.labels ? argv.labels.split(",") : undefined;
+const customFieldInputs = argv["custom-field"];
+const issueType = argv["issue-type"];
+
+// Parse custom fields as key=value pairs
+const customFields = {};
+if (customFieldInputs) {
+  const inputs = Array.isArray(customFieldInputs)
+    ? customFieldInputs
+    : [customFieldInputs];
+  inputs.forEach((input) => {
+    const parts = input.split("=");
+    if (parts.length === 2) {
+      customFields[parts[0]] = parts[1];
+    }
+  });
+}
 
 if (!title) {
-  console.error("Usage: new-jira-issue <title> [description]");
+  console.error("Usage: new-jira-issue <title> [options]");
+  console.error("Options:");
+  console.error("  -d, --description <text>     Issue description");
+  console.error("  -a, --assignee <username>    Assignee username");
+  console.error("  -l, --labels <label1,label2> Comma-separated labels");
+  console.error(
+    "  -c, --custom-field <key=val> Custom field as key=value (can be used multiple times)",
+  );
+  console.error("  -t, --issue-type <type>      Issue type (default: Story)");
   process.exit(1);
 }
 
@@ -33,15 +75,35 @@ assert(JIRA_PROJECT_KEY, "Missing JIRA_PROJECT_KEY in .env file");
  * @param param0
  * @returns {Promise<DTOCreateIssue>}
  */
-function createIssue({ title, description }) {
+function createIssue({
+  title,
+  description,
+  assignee,
+  labels,
+  customFields,
+  issueType,
+}) {
   const payload = {
     fields: {
       project: { key: JIRA_PROJECT_KEY },
       summary: title,
       description: description,
-      issuetype: { name: "Story" },
+      issuetype: { name: issueType },
     },
   };
+
+  if (assignee) {
+    payload.fields.assignee = { name: assignee };
+  }
+
+  if (labels) {
+    payload.fields.labels = labels;
+  }
+
+  if (customFields && Object.keys(customFields).length > 0) {
+    Object.assign(payload.fields, customFields);
+  }
+
   try {
     const url = `${JIRA_URL}/rest/api/2/issue`;
     return makeJsonPostRequest(url, JIRA_API_TOKEN, payload);
@@ -54,6 +116,10 @@ async function main() {
   const response = await createIssue({
     title,
     description,
+    assignee,
+    labels,
+    customFields,
+    issueType,
   });
   const browseURL = `${JIRA_URL}/browse/${response.key}`;
   console.log({ browseURL });
