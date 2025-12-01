@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { makeJsonGetRequest } = require("../__shared");
+const { makeJsonGetRequest } = require("../shared/__shared");
 
 const assert = require("assert");
 const path = require("path");
