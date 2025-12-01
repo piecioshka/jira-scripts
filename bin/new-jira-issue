@@ -121,6 +121,10 @@ async function main() {
     customFields,
     issueType,
   });
+  if (!response || !response.key) {
+    console.error(response);
+    throw new Error("Failed to create JIRA issue");
+  }
   const browseURL = `${JIRA_URL}/browse/${response.key}`;
   console.log({ browseURL });
 }
