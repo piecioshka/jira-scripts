@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+
+const issueId = process.argv[2];
+
+if (!issueId) {
+  console.error("Usage: get-jira-issue <issue_id>");
+  process.exit(1);
+}
+
+const { makeJsonGetRequest } = require("../shared/__shared");
+
+const path = require("path");
+const assert = require("assert");
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+
+const JIRA_URL = process.env.JIRA_URL;
+const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
+
+assert(JIRA_URL, "Missing JIRA_URL in .env file");
+assert(JIRA_API_TOKEN, "Missing JIRA_API_TOKEN in .env file");
+
+/**
+ * @param {string} issueId
+ * @returns {Promise<Object>}
+ */
+async function getIssue(issueId) {
+  try {
+    const url = `${JIRA_URL}/rest/api/2/issue/${issueId}`;
+    return await makeJsonGetRequest(url, JIRA_API_TOKEN);
+  } catch (error) {
+    return Promise.reject(error.response?.data || error.message);
+  }
+}
+
+async function main() {
+  const issue = await getIssue(issueId);
+  console.log(JSON.stringify(issue, null, 2));
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

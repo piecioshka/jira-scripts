@@ -19,6 +19,7 @@ set -gx PATH $HOME/projects/jira-scripts/bin/ $PATH
 
 ## Commands
 
+- `get-jira-issue <issue_id>` - Get issue details by ID (**use HTTP GET**)
 - `get-jira-tokens` - Get all Personal Access Tokens (**use HTTP GET**) — _TIP: could verify if authorization is correct_
 - `new-jira-issue <title> [options]` - Create a new ticket (**use HTTP POST**)
 
@@ -61,6 +62,7 @@ new-jira-issue "Story title" -c "customfield_10000=value1" -c "customfield_10001
 To enable debugging, please use the `DEBUG` environment variable.
 
 ```bash
+DEBUG="jira-scripts:*" get-jira-issue PROJ-123
 DEBUG="jira-scripts:*" get-jira-tokens
 DEBUG="jira-scripts:*" new-jira-issue "My Issue"
 ```
