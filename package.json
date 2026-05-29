@@ -9,7 +9,7 @@
     "email": "pkowalski@gmail.com"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --check bin/get-jira-issue && node --check bin/get-jira-tokens && node --check bin/new-jira-issue && node --check bin/update-jira-issue && node --check shared/__shared.js"
   },
   "dependencies": {
     "debug": "^4.4.0",
