@@ -9,7 +9,7 @@
     "email": "pkowalski@gmail.com"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --check bin/*"
   },
   "dependencies": {
     "debug": "^4.4.0",
