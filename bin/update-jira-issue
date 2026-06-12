@@ -40,7 +40,7 @@ const { makePutRequest, parseCustomFields } = require("../shared/__shared");
 
 const path = require("path");
 const assert = require("assert");
-require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+require("dotenv").config({ quiet: true, path: path.join(__dirname, "..", ".env") });
 
 const JIRA_URL = process.env.JIRA_URL;
 const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
