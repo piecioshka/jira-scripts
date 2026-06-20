@@ -93,3 +93,7 @@ DEBUG="jira-scripts:*" get-jira-tokens
 DEBUG="jira-scripts:*" new-jira-issue <title> [options]
 DEBUG="jira-scripts:*" update-jira-issue <issue_id> [options]
 ```
+
+## License
+
+[The MIT License](http://piecioshka.mit-license.org) @ 2026
